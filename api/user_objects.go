@@ -123,6 +123,16 @@ func registerObjectsHandlers(api *operations.ConsoleAPI) {
 		}
 		return objectApi.NewPostBucketsBucketNameObjectsUploadOK()
 	})
+	api.ObjectPutBucketsBucketNameObjectsCopyObjectHandler = objectApi.PutBucketsBucketNameObjectsCopyObjectHandlerFunc(func(params objectApi.PutBucketsBucketNameObjectsCopyObjectParams, session *models.Principal) middleware.Responder {
+		if err := getCopyObjectResponse(session, params); err != nil {
+			if strings.Contains(err.APIError.DetailedMessage, "413") {
+				return objectApi.NewPutBucketsBucketNameObjectsCopyObjectDefault(413).WithPayload(err.APIError)
+			}
+			return objectApi.NewPutBucketsBucketNameObjectsCopyObjectDefault(err.Code).WithPayload(err.APIError)
+		}
+		return objectApi.NewPutBucketsBucketNameObjectsCopyObjectOK()
+	})
+
 	// get share object url
 	api.ObjectShareObjectHandler = objectApi.ShareObjectHandlerFunc(func(params objectApi.ShareObjectParams, session *models.Principal) middleware.Responder {
 		resp, err := getShareObjectResponse(session, params)
@@ -993,6 +1003,35 @@ func uploadFiles(ctx context.Context, client MinioClient, params objectApi.PostB
 	}
 
 	return nil
+}
+
+func getCopyObjectResponse(session *models.Principal, params objectApi.PutBucketsBucketNameObjectsCopyObjectParams) *CodedAPIError {
+	ctx := params.HTTPRequest.Context()
+	mClient, err := newMinioClient(session, getClientIP(params.HTTPRequest))
+	if err != nil {
+		return ErrorWithContext(ctx, err)
+	}
+	// create a minioClient interface implementation
+	// defining the client to be used
+	minioClient := minioClient{client: mClient}
+	if err := copyObject(ctx, minioClient, params); err != nil {
+		return ErrorWithContext(ctx, err, ErrDefault)
+	}
+	return nil
+}
+
+func copyObject(ctx context.Context, client MinioClient, params objectApi.PutBucketsBucketNameObjectsCopyObjectParams) error {
+	_, err := client.copyObject(ctx,
+		minio.CopyDestOptions{
+			Bucket: params.TargetBucket,
+			Object: params.Target,
+		},
+		minio.CopySrcOptions{
+			Bucket: params.BucketName,
+			Object: params.Source,
+		},
+	)
+	return err
 }
 
 // getShareObjectResponse returns a share object url

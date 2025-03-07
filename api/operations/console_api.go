@@ -365,6 +365,9 @@ func NewConsoleAPI(spec *loads.Document) *ConsoleAPI {
 		BucketPutBucketTagsHandler: bucket.PutBucketTagsHandlerFunc(func(params bucket.PutBucketTagsParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation bucket.PutBucketTags has not yet been implemented")
 		}),
+		ObjectPutBucketsBucketNameObjectsCopyObjectHandler: object.PutBucketsBucketNameObjectsCopyObjectHandlerFunc(func(params object.PutBucketsBucketNameObjectsCopyObjectParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation object.PutBucketsBucketNameObjectsCopyObject has not yet been implemented")
+		}),
 		ObjectPutObjectLegalHoldHandler: object.PutObjectLegalHoldHandlerFunc(func(params object.PutObjectLegalHoldParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation object.PutObjectLegalHold has not yet been implemented")
 		}),
@@ -696,6 +699,8 @@ type ConsoleAPI struct {
 	ConfigurationPostConfigsImportHandler configuration.PostConfigsImportHandler
 	// BucketPutBucketTagsHandler sets the operation handler for the put bucket tags operation
 	BucketPutBucketTagsHandler bucket.PutBucketTagsHandler
+	// ObjectPutBucketsBucketNameObjectsCopyObjectHandler sets the operation handler for the put buckets bucket name objects copy object operation
+	ObjectPutBucketsBucketNameObjectsCopyObjectHandler object.PutBucketsBucketNameObjectsCopyObjectHandler
 	// ObjectPutObjectLegalHoldHandler sets the operation handler for the put object legal hold operation
 	ObjectPutObjectLegalHoldHandler object.PutObjectLegalHoldHandler
 	// ObjectPutObjectRestoreHandler sets the operation handler for the put object restore operation
@@ -1122,6 +1127,9 @@ func (o *ConsoleAPI) Validate() error {
 	}
 	if o.BucketPutBucketTagsHandler == nil {
 		unregistered = append(unregistered, "bucket.PutBucketTagsHandler")
+	}
+	if o.ObjectPutBucketsBucketNameObjectsCopyObjectHandler == nil {
+		unregistered = append(unregistered, "object.PutBucketsBucketNameObjectsCopyObjectHandler")
 	}
 	if o.ObjectPutObjectLegalHoldHandler == nil {
 		unregistered = append(unregistered, "object.PutObjectLegalHoldHandler")
@@ -1689,6 +1697,10 @@ func (o *ConsoleAPI) initHandlerCache() {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
 	o.handlers["PUT"]["/buckets/{bucket_name}/tags"] = bucket.NewPutBucketTags(o.context, o.BucketPutBucketTagsHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/buckets/{bucket_name}/objects/copy-object"] = object.NewPutBucketsBucketNameObjectsCopyObject(o.context, o.ObjectPutBucketsBucketNameObjectsCopyObjectHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}

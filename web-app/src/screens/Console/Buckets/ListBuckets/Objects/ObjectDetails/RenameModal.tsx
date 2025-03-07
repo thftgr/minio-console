@@ -68,6 +68,8 @@ const RenameModal = ({
       ? objectNameArray[objectNameArray.length - 1]
       : actualInfo.name;
 
+  // tail slash 제거
+  const objectPath = actualInfo.name?.replace(objectName!!,"") || ""
   const [newName, setNewName] = useState<string>(objectName || "");
   const [isSending, setIsSending] = useState<boolean>(false);
 
@@ -82,29 +84,27 @@ const RenameModal = ({
   const renameProcess = () => {
     setIsSending(true);
 
-    const verID = distributedSetup ? actualInfo.version_id || "" : "null";
+    console.log(`objectPath   : ${objectPath}`)
+    console.log(`objectNameArray   : ${objectNameArray}`)
+    console.log(`objectName   : ${objectName}`)
+    console.log(`source: ${bucketName}/${actualInfo.name}`)
+    console.log(`target: ${bucketName}/${objectPath}${newName}`);
 
-    // api.buckets.objectsCopyObjectUpdate(
-    //     bucketName,
-    //     {
-    //       source: "",
-    //       target_bucket: "",
-    //       target: ""
-    //     },
-    // )
-    // api.buckets
-    //   .putObjectTags(
-    //     bucketName,
-    //     { prefix: actualInfo.name || "", version_id: verID },
-    //   )
-    //   .then(() => {
-    //     onCloseAndUpdate(true);
-    //     setIsSending(false);
-    //   })
-    //   .catch((err) => {
-    //     dispatch(setModalErrorSnackMessage(errorToHandler(err.error)));
+
+    api.buckets.objectsCopyObjectUpdate(
+      bucketName,
+      {
+        source: objectName!,
+        target_bucket: bucketName,
+        target: `${objectPath}${newName}`,
+      },
+    ).then(() => {
+        onCloseAndUpdate(true);
         setIsSending(false);
-    //   });
+    }).catch((err) => {
+        dispatch(setModalErrorSnackMessage(errorToHandler(err.error)));
+        setIsSending(false);
+    });
   };
 
   const renameFor = (plural: boolean) => (

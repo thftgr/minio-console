@@ -1082,6 +1082,59 @@ func init() {
         }
       }
     },
+    "/buckets/{bucket_name}/objects/copy-object": {
+      "put": {
+        "security": [
+          {
+            "key": []
+          },
+          {
+            "anonymous": []
+          }
+        ],
+        "tags": [
+          "Object"
+        ],
+        "summary": "Copies an Object.",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "bucket_name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "source",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "target_bucket",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "target",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response."
+          },
+          "default": {
+            "description": "Generic error response.",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      }
+    },
     "/buckets/{bucket_name}/objects/download": {
       "get": {
         "security": [
@@ -8338,6 +8391,59 @@ func init() {
             "type": "boolean",
             "name": "bypass",
             "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response."
+          },
+          "default": {
+            "description": "Generic error response.",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      }
+    },
+    "/buckets/{bucket_name}/objects/copy-object": {
+      "put": {
+        "security": [
+          {
+            "key": []
+          },
+          {
+            "anonymous": []
+          }
+        ],
+        "tags": [
+          "Object"
+        ],
+        "summary": "Copies an Object.",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "bucket_name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "source",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "target_bucket",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "target",
+            "in": "query",
+            "required": true
           }
         ],
         "responses": {
