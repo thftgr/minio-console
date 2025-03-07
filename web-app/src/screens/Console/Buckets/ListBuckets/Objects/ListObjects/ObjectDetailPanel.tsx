@@ -23,6 +23,7 @@ import {
   Button,
   DeleteIcon,
   DownloadIcon,
+  EditIcon,
   Grid,
   InspectMenuIcon,
   LegalHoldIcon,
@@ -72,6 +73,7 @@ import TagsModal from "../ObjectDetails/TagsModal";
 import InspectObject from "./InspectObject";
 import RenameLongFileName from "../../../../ObjectBrowser/RenameLongFilename";
 import TooltipWrapper from "../../../../Common/TooltipWrapper/TooltipWrapper";
+import RenameModal from "../ObjectDetails/RenameModal";
 
 const emptyFile: BucketObject = {
   is_latest: true,
@@ -116,6 +118,7 @@ const ObjectDetailPanel = ({
   const [shareFileModalOpen, setShareFileModalOpen] = useState<boolean>(false);
   const [retentionModalOpen, setRetentionModalOpen] = useState<boolean>(false);
   const [tagModalOpen, setTagModalOpen] = useState<boolean>(false);
+  const [renameModalOpen, setRenameModalOpen] = useState<boolean>(false);
   const [legalholdOpen, setLegalholdOpen] = useState<boolean>(false);
   const [inspectModalOpen, setInspectModalOpen] = useState<boolean>(false);
   const [actualInfo, setActualInfo] = useState<BucketObject | null>(null);
@@ -279,6 +282,12 @@ const ObjectDetailPanel = ({
     }
   };
 
+  const closeRenameModal = (reloadObjectData: boolean) => {
+    setRenameModalOpen(false);
+    if (reloadObjectData) {
+      dispatch(setLoadingObjectInfo(true));
+    }
+  };
   const closeInspectModal = (reloadObjectData: boolean) => {
     setInspectModalOpen(false);
     if (reloadObjectData) {
@@ -324,6 +333,14 @@ const ObjectDetailPanel = ({
   const canSetTags = hasPermission(objectResources, [
     IAM_SCOPES.S3_PUT_OBJECT_TAGGING,
     IAM_SCOPES.S3_PUT_ACTIONS,
+  ]);
+  const canRename = hasPermission(objectResources, [
+    IAM_SCOPES.S3_PUT_OBJECT,
+    IAM_SCOPES.S3_GET_OBJECT,
+    IAM_SCOPES.S3_DELETE_OBJECT,
+    IAM_SCOPES.S3_GET_ACTIONS,
+    IAM_SCOPES.S3_PUT_ACTIONS,
+    IAM_SCOPES.S3_DELETE_ACTIONS,
   ]);
 
   const canChangeRetention = hasPermission(
@@ -469,6 +486,28 @@ const ObjectDetailPanel = ({
     },
     {
       action: () => {
+        setRenameModalOpen(true);
+      },
+      label: "Rename",
+      disabled:
+          !!actualInfo.is_delete_marker || selectedVersion !== "" || !canRename,
+      icon: <EditIcon />,
+      tooltip: canRename
+          ? "rename this File"
+          : permissionTooltipHelper(
+              [
+                IAM_SCOPES.S3_PUT_OBJECT,
+                IAM_SCOPES.S3_GET_OBJECT,
+                IAM_SCOPES.S3_DELETE_OBJECT,
+                IAM_SCOPES.S3_GET_ACTIONS,
+                IAM_SCOPES.S3_PUT_ACTIONS,
+                IAM_SCOPES.S3_DELETE_ACTIONS,
+              ],
+              "Rename this object",
+          ),
+    },
+    {
+      action: () => {
         setInspectModalOpen(true);
       },
       label: "Inspect",
@@ -583,6 +622,14 @@ const ObjectDetailPanel = ({
           actualInfo={actualInfo}
           onCloseAndUpdate={closeAddTagModal}
         />
+      )}
+      {renameModalOpen && actualInfo && (
+          <RenameModal
+              modalOpen={renameModalOpen}
+              bucketName={bucketName}
+              actualInfo={actualInfo}
+              onCloseAndUpdate={closeRenameModal}
+          />
       )}
       {inspectModalOpen && actualInfo && (
         <InspectObject
