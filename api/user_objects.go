@@ -1031,7 +1031,10 @@ func copyObject(ctx context.Context, client MinioClient, params objectApi.PutBuc
 			Object: params.Source,
 		},
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // getShareObjectResponse returns a share object url
