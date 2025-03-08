@@ -90,7 +90,6 @@ const RenameModal = ({
     console.log(`source: ${bucketName}/${actualInfo.name}`)
     console.log(`target: ${bucketName}/${objectPath}${newName}`);
 
-
     api.buckets.objectsCopyObjectUpdate(
       bucketName,
       {
@@ -99,11 +98,18 @@ const RenameModal = ({
         target: `${objectPath}${newName}`,
       },
     ).then(() => {
-        onCloseAndUpdate(true);
-        setIsSending(false);
+      return api.buckets.deleteObject(
+        bucketName,
+        {
+          prefix: objectName!,
+        },
+      )
+    }).then(() => {
+      onCloseAndUpdate(true);
+      setIsSending(false);
     }).catch((err) => {
-        dispatch(setModalErrorSnackMessage(errorToHandler(err.error)));
-        setIsSending(false);
+      dispatch(setModalErrorSnackMessage(errorToHandler(err.error)));
+      setIsSending(false);
     });
   };
 

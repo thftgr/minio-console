@@ -20,7 +20,7 @@ import { useSelector } from "react-redux";
 import {
   ActionsList,
   Box,
-  Button,
+  Button, CopyIcon,
   DeleteIcon,
   DownloadIcon,
   EditIcon,
@@ -74,6 +74,7 @@ import InspectObject from "./InspectObject";
 import RenameLongFileName from "../../../../ObjectBrowser/RenameLongFilename";
 import TooltipWrapper from "../../../../Common/TooltipWrapper/TooltipWrapper";
 import RenameModal from "../ObjectDetails/RenameModal";
+import CopyModal from "../ObjectDetails/CopyModal";
 
 const emptyFile: BucketObject = {
   is_latest: true,
@@ -119,6 +120,7 @@ const ObjectDetailPanel = ({
   const [retentionModalOpen, setRetentionModalOpen] = useState<boolean>(false);
   const [tagModalOpen, setTagModalOpen] = useState<boolean>(false);
   const [renameModalOpen, setRenameModalOpen] = useState<boolean>(false);
+  const [copyModalOpen, setCopyModalOpen] = useState<boolean>(false);
   const [legalholdOpen, setLegalholdOpen] = useState<boolean>(false);
   const [inspectModalOpen, setInspectModalOpen] = useState<boolean>(false);
   const [actualInfo, setActualInfo] = useState<BucketObject | null>(null);
@@ -288,6 +290,12 @@ const ObjectDetailPanel = ({
       dispatch(setLoadingObjectInfo(true));
     }
   };
+  const closeCopyModal = (reloadObjectData: boolean) => {
+    setCopyModalOpen(false);
+    if (reloadObjectData) {
+      dispatch(setLoadingObjectInfo(true));
+    }
+  };
   const closeInspectModal = (reloadObjectData: boolean) => {
     setInspectModalOpen(false);
     if (reloadObjectData) {
@@ -341,6 +349,12 @@ const ObjectDetailPanel = ({
     IAM_SCOPES.S3_GET_ACTIONS,
     IAM_SCOPES.S3_PUT_ACTIONS,
     IAM_SCOPES.S3_DELETE_ACTIONS,
+  ]);
+  const canCopy = hasPermission(objectResources, [
+    IAM_SCOPES.S3_PUT_OBJECT,
+    IAM_SCOPES.S3_GET_OBJECT,
+    IAM_SCOPES.S3_GET_ACTIONS,
+    IAM_SCOPES.S3_PUT_ACTIONS,
   ]);
 
   const canChangeRetention = hasPermission(
@@ -508,6 +522,26 @@ const ObjectDetailPanel = ({
     },
     {
       action: () => {
+        setCopyModalOpen(true);
+      },
+      label: "Copy",
+      disabled:
+        !!actualInfo.is_delete_marker || selectedVersion !== "" || !canCopy,
+      icon: <CopyIcon />,
+      tooltip: canCopy
+        ? "copy this File"
+        : permissionTooltipHelper(
+          [
+            IAM_SCOPES.S3_PUT_OBJECT,
+            IAM_SCOPES.S3_GET_OBJECT,
+            IAM_SCOPES.S3_GET_ACTIONS,
+            IAM_SCOPES.S3_PUT_ACTIONS,
+          ],
+          "copy this object",
+        ),
+    },
+    {
+      action: () => {
         setInspectModalOpen(true);
       },
       label: "Inspect",
@@ -630,6 +664,14 @@ const ObjectDetailPanel = ({
               actualInfo={actualInfo}
               onCloseAndUpdate={closeRenameModal}
           />
+      )}
+      {copyModalOpen && actualInfo && (
+        <CopyModal
+          modalOpen={copyModalOpen}
+          bucketName={bucketName}
+          actualInfo={actualInfo}
+          onCloseAndUpdate={closeCopyModal}
+        />
       )}
       {inspectModalOpen && actualInfo && (
         <InspectObject

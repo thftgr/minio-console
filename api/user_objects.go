@@ -1021,6 +1021,7 @@ func getCopyObjectResponse(session *models.Principal, params objectApi.PutBucket
 }
 
 func copyObject(ctx context.Context, client MinioClient, params objectApi.PutBucketsBucketNameObjectsCopyObjectParams) error {
+	// TODO 모든 버전을 포함하려면 모든 버전에 대해 복사 명령을 실행해야함
 	_, err := client.copyObject(ctx,
 		minio.CopyDestOptions{
 			Bucket: params.TargetBucket,
